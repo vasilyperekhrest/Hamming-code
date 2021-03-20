@@ -2,61 +2,70 @@ import numpy as np
 import math
 
 
-def wrap(string: str, number: int) -> tuple:
+def wrap(string: str, number: int) -> tuple[str]:
+    """Function for splitting a string into substrings of n characters each
+
+    Args:
+        string (str): The string to be split.
+        number (int): Number of characters in a substring.
+
+    Returns:
+        tuple[str]: A tuple that contains substrings of n characters.
     """
-    Function for splitting a string into substrings of n characters each
+    wrap_str = tuple(string[i:i+number] for i in range(0, len(string), number))
 
-    :param string: The string to be split
-    :param number: Number of characters in a substring
-    :return: A tuple that contains substrings of n characters
-    """
-    wrap_str = [string[i:i+number] for i in range(0, len(string), number)]
-    return tuple(wrap_str)
+    return wrap_str
 
 
-def get_control_bits(block_length: int) -> tuple:
-    """
-    Check bit calculation
+def get_control_bits(block_length: int) -> tuple[int]:
+    """Check bit calculation.
 
-    :param block_length: Block length based on which control bits will be determined
-    :return: A tuple that contains control bits
+    Args:
+        block_length (int): Block length based on which control bits will be
+        determined.
+
+    Returns:
+        tuple[int]: A tuple that contains control bits.
     """
     k = 0
     while k < math.log2(block_length + k + 1):
         k = math.ceil(math.log2(k + block_length + 1))
 
-    control_bits = tuple([2 ** i for i in range(k)])
+    control_bits = tuple(2 ** i for i in range(k))
 
     return control_bits
 
 
 def get_matrix_transform(block_length: int, k: int) -> np.ndarray:
-    """
-    Transition matrix for determining control bit and syndrome values
+    """Transition matrix for determining control bit and syndrome values.
 
-    :param block_length: The length of the block on the basis of which the matrix is built
-    :param k: Number of control bits
-    :return: Two-dimensional array (numpy)
+    Args:
+        block_length (int): The length of the block on the basis of which the
+        matrix is built.
+        k (int): Number of control bits.
+
+    Returns:
+        np.ndarray: Two-dimensional array (numpy)
     """
-    matrix_transform = np.zeros((block_length + k, k), dtype=np.int8)
+    matrix_transform = np.zeros((block_length + k, k), dtype=np.uint8)
 
     for index in range(1, block_length + k + 1):
         bin_value = bin(index)[2::].zfill(k)
         bin_value = list(map(int, bin_value))[::-1]
         matrix_transform[index - 1] = bin_value
 
-    matrix_transform = matrix_transform.transpose()
-
-    return matrix_transform
+    return matrix_transform.transpose()
 
 
 def hamming_decode(string: str, block_length: int = 8) -> str:
-    """
-    Hamming decoding
+    """Hamming decoding.
 
-    :param string: Encoded string
-    :param block_length: Coding block length (default is 8)
-    :return: Decoded string
+    Args:
+        string (str): Encoded string.
+        block_length (int, optional): Coding block length. Defaults to 8.
+
+    Returns:
+        str: Decoded string.
     """
     control_bits = get_control_bits(block_length)
     k = len(control_bits)
@@ -66,7 +75,7 @@ def hamming_decode(string: str, block_length: int = 8) -> str:
     decoded_str = ""
 
     for i, code in enumerate(wrap(string, block_length+k)):
-        code = np.array(list(code), dtype=np.int8)
+        code = np.array(list(code), dtype=np.uint8)
         syndrome = np.dot(matrix_transform, code) % 2
 
         # Convert Syndrome to Decimal Number System
@@ -95,12 +104,14 @@ def hamming_decode(string: str, block_length: int = 8) -> str:
 
 
 def hamming_encode(string: str, block_length: int = 8) -> str:
-    """
-    Hamming encoding
+    """Hamming encoding.
 
-    :param string: The string to be encoded
-    :param block_length: Coding block length (default is 8)
-    :return: Encoded string
+    Args:
+        string (str): The string to be encoded.
+        block_length (int, optional): Coding block length. Defaults to 8.
+
+    Returns:
+        str: Encoded string.
     """
     control_bits = get_control_bits(block_length)
     k = len(control_bits)
