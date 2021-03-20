@@ -1,2 +1,2 @@
-numpy==1.20.1
+numpy>=1.20.1
 pycodestyle==2.7.0
